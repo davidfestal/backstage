@@ -142,6 +142,26 @@ export function registerScriptCommand(program: Command) {
     .action(lazy(() => import('./build').then(m => m.command)));
 
   command
+    .command('export-dynamic-plugin')
+    .description(
+      'Build and export a plugin package to be loaded as a dynamic plugin. The repackaged dynamic plugin is exported inside a ./dist-dynamic sub-folder.',
+    )
+    .option('--minify', 'Minify the generated code.')
+    .option(
+      '--embed-package [package-name...]',
+      'Optional list of packages that should be embedded inside the produced code, and removed from direct dependencies.',
+    )
+    .option(
+      '--no-install',
+      'Do not run `yarn install` to fill the dynamic plugin `node_modules` folder.',
+    )
+    .option(
+      '--dev',
+      'Allow testing/debugging the plugin dynamic loading locally. This installs the dynamic plugin content (symlink) into the dynamic plugins root folder configured in the app config. This also creates a link from the dynamic plugin content to the plugin package `src` folder, to enable the use of source maps.',
+    )
+    .action(lazy(() => import('./export-dynamic-plugin').then(m => m.command)));
+
+  command
     .command('lint [directories...]')
     .option(
       '--format <format>',

@@ -29,6 +29,7 @@ const SCRIPT_EXTS = ['.js', '.jsx', '.ts', '.tsx'];
 interface ProductionPackOptions {
   packageDir: string;
   targetDir?: string;
+  customizeManifest?: (pkg: BackstagePackageJson) => undefined | void
 }
 
 export async function productionPack(options: ProductionPackOptions) {
@@ -74,6 +75,10 @@ export async function productionPack(options: ProductionPackOptions) {
     delete pkg.devDependencies;
     delete pkg.peerDependencies;
     delete pkg.optionalDependencies;
+  }
+
+  if (options.customizeManifest !== undefined) {
+    options.customizeManifest(pkg)    
   }
 
   if (targetDir) {

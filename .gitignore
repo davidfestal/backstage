@@ -106,6 +106,7 @@ typings/
 dist
 dist-types
 dist-workspace
+dist-dynamic
 
 # Gatsby files
 .cache/
