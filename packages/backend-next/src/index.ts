@@ -15,6 +15,7 @@
  */
 
 import { createBackend } from '@backstage/backend-defaults';
+import { dynamicPluginsServiceFactory } from '@backstage/backend-plugin-manager';
 import { appPlugin } from '@backstage/plugin-app-backend/alpha';
 import { catalogPlugin } from '@backstage/plugin-catalog-backend/alpha';
 import { kubernetesPlugin } from '@backstage/plugin-kubernetes-backend/alpha';
@@ -33,7 +34,9 @@ import { todoPlugin } from '@backstage/plugin-todo-backend';
 import { entityFeedbackPlugin } from '@backstage/plugin-entity-feedback-backend';
 import { catalogModuleUnprocessedEntities } from '@backstage/plugin-catalog-backend-module-unprocessed';
 
-const backend = createBackend();
+const backend = createBackend({
+  services: [dynamicPluginsServiceFactory()],
+});
 
 backend.add(appPlugin({ appPackageName: 'example-app' }));
 

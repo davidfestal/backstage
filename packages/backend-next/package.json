@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@backstage/backend-defaults": "workspace:^",
+    "@backstage/backend-plugin-manager": "workspace:^",
     "@backstage/plugin-app-backend": "workspace:^",
     "@backstage/plugin-auth-node": "workspace:^",
     "@backstage/plugin-catalog-backend": "workspace:^",
