@@ -33,11 +33,13 @@
     "test": "backstage-cli package test",
     "prepack": "backstage-cli package prepack",
     "postpack": "backstage-cli package postpack",
-    "clean": "backstage-cli package clean"
+    "clean": "backstage-cli package clean",
+    "export-dynamic": "backstage-cli package export-dynamic-plugin"
   },
   "dependencies": {
     "@backstage/backend-common": "workspace:^",
     "@backstage/backend-plugin-api": "workspace:^",
+    "@backstage/backend-plugin-manager": "workspace:^",
     "@backstage/backend-tasks": "workspace:^",
     "@backstage/config": "workspace:^",
     "@backstage/plugin-explore-common": "workspace:^",
@@ -52,6 +54,9 @@
     "msw": "^1.2.1"
   },
   "files": [
-    "dist"
+    "dist",
+    "dist-dynamic/*.*",
+    "dist-dynamic/dist/**",
+    "dist-dynamic/alpha/*"
   ]
 }

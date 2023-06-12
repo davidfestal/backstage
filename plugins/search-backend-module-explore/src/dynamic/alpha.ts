@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-/**
- * @packageDocumentation
- * A module for the search backend that exports Explore modules.
- */
+import { BackendDynamicPluginInstaller } from '@backstage/backend-plugin-manager';
+import { searchModuleExploreCollator } from '../plugin';
 
-export * from './plugin';
-export * from './dynamic/alpha';
+export const dynamicPluginInstaller: BackendDynamicPluginInstaller = {
+  kind: 'new',
+  install: searchModuleExploreCollator,
+};

@@ -26,7 +26,6 @@ import {
 import { scaffolderPlugin } from '@backstage/plugin-scaffolder-backend/alpha';
 import { catalogModuleTemplateKind } from '@backstage/plugin-scaffolder-backend/alpha';
 import { searchModuleCatalogCollator } from '@backstage/plugin-search-backend-module-catalog/alpha';
-import { searchModuleExploreCollator } from '@backstage/plugin-search-backend-module-explore/alpha';
 import { searchModuleTechDocsCollator } from '@backstage/plugin-search-backend-module-techdocs/alpha';
 import { searchPlugin } from '@backstage/plugin-search-backend/alpha';
 import { techdocsPlugin } from '@backstage/plugin-techdocs-backend/alpha';
@@ -59,7 +58,6 @@ backend.add(scaffolderPlugin());
 backend.add(searchPlugin());
 backend.add(searchModuleCatalogCollator());
 backend.add(searchModuleTechDocsCollator());
-backend.add(searchModuleExploreCollator());
 
 // Permissions
 backend.add(permissionPlugin());
