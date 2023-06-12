@@ -16,3 +16,4 @@
 
 export { eventsModuleGithubEventRouter } from './service/eventsModuleGithubEventRouter';
 export { eventsModuleGithubWebhook } from './service/eventsModuleGithubWebhook';
+export * from './dynamic/alpha';
