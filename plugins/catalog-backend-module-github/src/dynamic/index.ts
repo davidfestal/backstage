@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Backstage Authors
+ * Copyright 2022 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,5 +14,17 @@
  * limitations under the License.
  */
 
-export * from './module';
-export * from './dynamic/alpha';
+import { BackendDynamicPluginInstaller } from '@backstage/backend-plugin-manager';
+import { GithubEntityProvider } from '../providers/GithubEntityProvider';
+
+export const dynamicPluginInstaller: BackendDynamicPluginInstaller = {
+  kind: 'legacy',
+  catalog(builder, env) {
+    const githubProvider = GithubEntityProvider.fromConfig(env.config, {
+      logger: env.logger,
+      scheduler: env.scheduler,
+    });
+    env.eventBroker.subscribe(githubProvider);
+    builder.addEntityProvider(githubProvider);
+  },
+};

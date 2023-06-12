@@ -42,3 +42,4 @@ export {
 } from './lib';
 
 export * from './deprecated';
+export * from './dynamic';
