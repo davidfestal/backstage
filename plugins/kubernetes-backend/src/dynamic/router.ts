@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Backstage Authors
+ * Copyright 2023 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { KubernetesBuilder } from '@backstage/plugin-kubernetes-backend';
 import { Router } from 'express';
-import { PluginEnvironment } from '../types';
+import { PluginEnvironment } from '@backstage/backend-plugin-manager';
 import { CatalogClient } from '@backstage/catalog-client';
 
 export default async function createPlugin(

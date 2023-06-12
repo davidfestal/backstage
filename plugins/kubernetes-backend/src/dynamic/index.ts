@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Backstage Authors
+ * Copyright 2022 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-/**
- * A Backstage backend plugin that integrates towards Kubernetes
- *
- * @packageDocumentation
- */
+import { BackendDynamicPluginInstaller } from '@backstage/backend-plugin-manager';
+import createPlugin from './router';
 
-export * from './kubernetes-auth-translator';
-export * from './service';
-export * from './types';
-export * from './dynamic/index';
+export const dynamicPluginInstaller: BackendDynamicPluginInstaller = {
+  kind: 'legacy',
+  router: {
+    pluginID: 'kubernetes',
+    createPlugin,
+  },
+};

@@ -47,7 +47,6 @@ import codeCoverage from './plugins/codecoverage';
 import entityFeedback from './plugins/entityFeedback';
 import events from './plugins/events';
 import explore from './plugins/explore';
-import kubernetes from './plugins/kubernetes';
 import kafka from './plugins/kafka';
 import rollbar from './plugins/rollbar';
 import scaffolder from './plugins/scaffolder';
@@ -175,7 +174,6 @@ async function main() {
   const searchEnv = useHotMemoize(module, () => createEnv('search'));
   const techdocsEnv = useHotMemoize(module, () => createEnv('techdocs'));
   const todoEnv = useHotMemoize(module, () => createEnv('todo'));
-  const kubernetesEnv = useHotMemoize(module, () => createEnv('kubernetes'));
   const kafkaEnv = useHotMemoize(module, () => createEnv('kafka'));
   const graphqlEnv = useHotMemoize(module, () => createEnv('graphql'));
   const appEnv = useHotMemoize(module, () => createEnv('app'));
@@ -209,7 +207,6 @@ async function main() {
   apiRouter.use('/search', await search(searchEnv));
   apiRouter.use('/techdocs', await techdocs(techdocsEnv));
   apiRouter.use('/todo', await todo(todoEnv));
-  apiRouter.use('/kubernetes', await kubernetes(kubernetesEnv));
   apiRouter.use('/kafka', await kafka(kafkaEnv));
   apiRouter.use('/proxy', await proxy(proxyEnv));
   apiRouter.use('/graphql', await graphql(graphqlEnv));

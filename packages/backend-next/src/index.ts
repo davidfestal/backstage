@@ -16,9 +16,9 @@
 
 import { createBackend } from '@backstage/backend-defaults';
 import { dynamicPluginsServiceFactory } from '@backstage/backend-plugin-manager';
+
 import { appPlugin } from '@backstage/plugin-app-backend/alpha';
 import { catalogPlugin } from '@backstage/plugin-catalog-backend/alpha';
-import { kubernetesPlugin } from '@backstage/plugin-kubernetes-backend/alpha';
 import {
   permissionModuleAllowAllPolicy,
   permissionPlugin,
@@ -60,9 +60,6 @@ backend.add(searchPlugin());
 backend.add(searchModuleCatalogCollator());
 backend.add(searchModuleTechDocsCollator());
 backend.add(searchModuleExploreCollator());
-
-// Kubernetes
-backend.add(kubernetesPlugin());
 
 // Permissions
 backend.add(permissionPlugin());

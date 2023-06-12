@@ -7361,7 +7361,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@backstage/plugin-kubernetes-backend@workspace:^, @backstage/plugin-kubernetes-backend@workspace:plugins/kubernetes-backend":
+"@backstage/plugin-kubernetes-backend@workspace:plugins/kubernetes-backend":
   version: 0.0.0-use.local
   resolution: "@backstage/plugin-kubernetes-backend@workspace:plugins/kubernetes-backend"
   dependencies:
@@ -7371,6 +7371,7 @@ __metadata:
     "@azure/identity": ^3.2.1
     "@backstage/backend-common": "workspace:^"
     "@backstage/backend-plugin-api": "workspace:^"
+    "@backstage/backend-plugin-manager": "workspace:^"
     "@backstage/backend-test-utils": "workspace:^"
     "@backstage/catalog-client": "workspace:^"
     "@backstage/catalog-model": "workspace:^"
@@ -24692,7 +24693,6 @@ __metadata:
     "@backstage/plugin-catalog-backend": "workspace:^"
     "@backstage/plugin-catalog-backend-module-unprocessed": "workspace:^"
     "@backstage/plugin-entity-feedback-backend": "workspace:^"
-    "@backstage/plugin-kubernetes-backend": "workspace:^"
     "@backstage/plugin-permission-backend": "workspace:^"
     "@backstage/plugin-permission-common": "workspace:^"
     "@backstage/plugin-permission-node": "workspace:^"
@@ -24738,7 +24738,6 @@ __metadata:
     "@backstage/plugin-graphql-backend": "workspace:^"
     "@backstage/plugin-jenkins-backend": "workspace:^"
     "@backstage/plugin-kafka-backend": "workspace:^"
-    "@backstage/plugin-kubernetes-backend": "workspace:^"
     "@backstage/plugin-lighthouse-backend": "workspace:^"
     "@backstage/plugin-linguist-backend": "workspace:^"
     "@backstage/plugin-nomad-backend": "workspace:^"
