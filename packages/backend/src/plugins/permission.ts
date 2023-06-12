@@ -34,7 +34,7 @@ import {
   PluginEnvironment,
 } from '@backstage/backend-plugin-manager';
 
-class ExamplePermissionPolicy implements PermissionPolicy {
+export class ExamplePermissionPolicy implements PermissionPolicy {
   private playlistPermissionPolicy = new DefaultPlaylistPermissionPolicy();
 
   async handle(
@@ -54,19 +54,24 @@ class ExamplePermissionPolicy implements PermissionPolicy {
 export default async function createPlugin(
   env: PluginEnvironment,
 ): Promise<Router> {
-
   const legacyInstallersWithPolicy = env.pluginProvider
     .backendPlugins()
-    .map((p) => {
+    .map(p => {
       return {
-        "name": p.name,
-        "installer": p.installer
-      }
+        name: p.name,
+        installer: p.installer,
+      };
     })
-    .filter((i): i is {
-      name: string;
-      installer: LegacyBackendPluginInstaller;
-    } => i.installer.kind === 'legacy' && i.installer.permissions?.policy !== undefined)
+    .filter(
+      (
+        i,
+      ): i is {
+        name: string;
+        installer: LegacyBackendPluginInstaller;
+      } =>
+        i.installer.kind === 'legacy' &&
+        i.installer.permissions?.policy !== undefined,
+    );
 
   if (legacyInstallersWithPolicy.length === 0) {
     throw new Error(
@@ -74,7 +79,11 @@ export default async function createPlugin(
     );
   }
   if (legacyInstallersWithPolicy.length > 1) {
-    throw new Error(`Only one dynamic plugin should contribute to the permission policy: ${legacyInstallersWithPolicy.map(i => i.name)}`);
+    throw new Error(
+      `Only one dynamic plugin should contribute to the permission policy: ${legacyInstallersWithPolicy.map(
+        i => i.name,
+      )}`,
+    );
   }
 
   return await createRouter({

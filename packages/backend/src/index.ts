@@ -60,7 +60,7 @@ import graphql from './plugins/graphql';
 import app from './plugins/app';
 import badges from './plugins/badges';
 import jenkins from './plugins/jenkins';
-import permission from './plugins/permission';
+import permission, { ExamplePermissionPolicy } from './plugins/permission';
 import playlist from './plugins/playlist';
 import adr from './plugins/adr';
 import lighthouse from './plugins/lighthouse';
@@ -145,6 +145,19 @@ async function main() {
   });
 
   const pluginManager = await PluginManager.fromConfig(config, logger);
+  pluginManager.addBackendPlugin({
+    name: 'embedded',
+    version: 'embedded',
+    platform: 'node',
+    role: 'backend-plugin-module',
+    installer: {
+      kind: 'legacy',
+      permissions: {
+        policy: new ExamplePermissionPolicy(),
+      },
+    },
+  });
+
   const createEnv = makeCreateEnv(config, pluginManager);
 
   logger.info(JSON.stringify(resolvePackagePath('@backstage/backend-common')));
