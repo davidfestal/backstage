@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Backstage Authors
+ * Copyright 2023 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { createRouter } from '@backstage/plugin-playlist-backend';
 import { Router } from 'express';
-import { PluginEnvironment } from '../types';
+import { PluginEnvironment } from '@backstage/backend-plugin-manager';
 
 export default async function createPlugin(
   env: PluginEnvironment,

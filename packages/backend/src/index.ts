@@ -60,7 +60,6 @@ import app from './plugins/app';
 import badges from './plugins/badges';
 import jenkins from './plugins/jenkins';
 import permission, { ExamplePermissionPolicy } from './plugins/permission';
-import playlist from './plugins/playlist';
 import adr from './plugins/adr';
 import lighthouse from './plugins/lighthouse';
 import linguist from './plugins/linguist';
@@ -184,7 +183,6 @@ async function main() {
     createEnv('tech-insights'),
   );
   const permissionEnv = useHotMemoize(module, () => createEnv('permission'));
-  const playlistEnv = useHotMemoize(module, () => createEnv('playlist'));
   const entityFeedbackEnv = useHotMemoize(module, () =>
     createEnv('entityFeedback'),
   );
@@ -213,7 +211,6 @@ async function main() {
   apiRouter.use('/badges', await badges(badgesEnv));
   apiRouter.use('/jenkins', await jenkins(jenkinsEnv));
   apiRouter.use('/permission', await permission(permissionEnv));
-  apiRouter.use('/playlist', await playlist(playlistEnv));
   apiRouter.use('/explore', await explore(exploreEnv));
   apiRouter.use('/entity-feedback', await entityFeedback(entityFeedbackEnv));
   apiRouter.use('/adr', await adr(adrEnv));

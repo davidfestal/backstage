@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Backstage Authors
+ * Copyright 2023 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-/**
- * Playlist backend plugin
- *
- * @packageDocumentation
- */
-export * from './service';
-export {
-  createPlaylistConditionalDecision,
-  DefaultPlaylistPermissionPolicy,
-  isPlaylistPermission,
-  playlistConditions,
-} from './permissions';
-export * from './dynamic';
+import { BackendDynamicPluginInstaller } from '@backstage/backend-plugin-manager';
+import createPlugin from './router';
+
+export const dynamicPluginInstaller: BackendDynamicPluginInstaller = {
+  kind: 'legacy',
+  router: {
+    pluginID: 'playlist',
+    createPlugin,
+  },
+};
