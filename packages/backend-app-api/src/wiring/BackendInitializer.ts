@@ -27,6 +27,7 @@ import { EnumerableServiceHolder, ServiceOrExtensionPoint } from './types';
 // eslint-disable-next-line @backstage/no-forbidden-package-imports
 import { InternalBackendFeature } from '@backstage/backend-plugin-api/src/wiring/types';
 import { ForwardedError } from '@backstage/errors';
+import { dynamicPluginsServiceRef } from '@backstage/backend-plugin-manager';
 
 export interface BackendRegisterInit {
   consumes: Set<ServiceOrExtensionPoint>;
@@ -124,18 +125,41 @@ export class BackendInitializer {
     process.addListener('SIGINT', exitHandler);
     process.addListener('beforeExit', exitHandler);
 
+    await this.#initializeServices();
+
+    const pluginProvider = this.#serviceHolder.get(
+      dynamicPluginsServiceRef,
+      'root',
+    );
+    if (pluginProvider !== undefined) {
+      for (const plugin of (await pluginProvider).backendPlugins()) {
+        if (plugin.installer.kind === 'new') {
+          const installed = plugin.installer.install();
+          if (Array.isArray(installed)) {
+            for (const feature of installed) {
+              this.add(feature);
+            }
+          } else {
+            this.add(installed);
+          }
+        }
+      }
+    }
+
     this.#startPromise = this.#doStart();
     await this.#startPromise;
   }
 
-  async #doStart(): Promise<void> {
+  async #initializeServices(): Promise<void> {
     // Initialize all root scoped services
     for (const ref of this.#serviceHolder.getServiceRefs()) {
       if (ref.scope === 'root') {
         await this.#serviceHolder.get(ref, 'root');
       }
     }
+  }
 
+  async #doStart(): Promise<void> {
     const pluginInits = new Map<string, BackendRegisterInit>();
     const moduleInits = new Map<string, Map<string, BackendRegisterInit>>();
 

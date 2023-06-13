@@ -34,6 +34,7 @@
   "dependencies": {
     "@backstage/backend-common": "workspace:^",
     "@backstage/backend-plugin-api": "workspace:^",
+    "@backstage/backend-plugin-manager": "workspace:^",
     "@backstage/backend-tasks": "workspace:^",
     "@backstage/cli-common": "workspace:^",
     "@backstage/config": "workspace:^",
