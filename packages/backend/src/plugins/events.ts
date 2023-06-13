@@ -15,27 +15,53 @@
  */
 
 import {
+  LegacyBackendPluginInstaller,
+  PluginEnvironment,
+} from '@backstage/backend-plugin-manager';
+import {
   EventsBackend,
   HttpPostIngressEventPublisher,
 } from '@backstage/plugin-events-backend';
+import { HttpPostIngressOptions } from '@backstage/plugin-events-node';
 import { Router } from 'express';
-import { PluginEnvironment } from '../types';
 
 export default async function createPlugin(
   env: PluginEnvironment,
 ): Promise<Router> {
   const eventsRouter = Router();
 
+  const eventsbackend = new EventsBackend(env.logger).setEventBroker(
+    env.eventBroker,
+  );
+
+  const ingresses = env.pluginProvider
+    .backendPlugins()
+    .map(plugin => plugin.installer)
+    .filter(
+      (installer): installer is LegacyBackendPluginInstaller =>
+        installer.kind === 'legacy',
+    )
+    .flatMap(installer => {
+      if (!installer.events) {
+        return [];
+      }
+      return installer.events(eventsbackend, env);
+    });
+
   const http = HttpPostIngressEventPublisher.fromConfig({
     config: env.config,
+    ingresses: Object.fromEntries(
+      ingresses.map(ingress => [
+        ingress.topic,
+        ingress as Omit<HttpPostIngressOptions, 'topic'>,
+      ]),
+    ),
     logger: env.logger,
   });
   http.bind(eventsRouter);
+  eventsbackend.addPublishers(http);
 
-  await new EventsBackend(env.logger)
-    .setEventBroker(env.eventBroker)
-    .addPublishers(http)
-    .start();
+  await eventsbackend.start();
 
   return eventsRouter;
 }

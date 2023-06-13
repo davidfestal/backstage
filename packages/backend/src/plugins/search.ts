@@ -16,8 +16,6 @@
 
 import { useHotCleanup } from '@backstage/backend-common';
 import { DefaultAdrCollatorFactory } from '@backstage/plugin-adr-backend';
-import { DefaultCatalogCollatorFactory } from '@backstage/plugin-catalog-backend';
-import { ToolDocumentCollatorFactory } from '@backstage/plugin-explore-backend';
 import { createRouter } from '@backstage/plugin-search-backend';
 import { ElasticSearchSearchEngine } from '@backstage/plugin-search-backend-module-elasticsearch';
 import { PgSearchEngine } from '@backstage/plugin-search-backend-module-pg';
@@ -26,9 +24,13 @@ import {
   LunrSearchEngine,
 } from '@backstage/plugin-search-backend-node';
 import { SearchEngine } from '@backstage/plugin-search-common';
-import { DefaultTechDocsCollatorFactory } from '@backstage/plugin-techdocs-backend';
 import { Router } from 'express';
-import { PluginEnvironment } from '../types';
+import {
+  LegacyBackendPluginInstaller,
+  PluginEnvironment,
+} from '@backstage/backend-plugin-manager';
+import { DefaultCatalogCollatorFactory } from '@backstage/plugin-search-backend-module-catalog';
+import { DefaultTechDocsCollatorFactory } from '@backstage/plugin-search-backend-module-techdocs';
 
 async function createSearchEngine(
   env: PluginEnvironment,
@@ -89,20 +91,22 @@ export default async function createPlugin(
     }),
   });
 
+  env.pluginProvider
+    .backendPlugins()
+    .map(p => p.installer)
+    .filter((i): i is LegacyBackendPluginInstaller => i.kind === 'legacy')
+    .forEach(i => {
+      if (i.search) {
+        i.search(indexBuilder, schedule, env);
+      }
+    });
+
   indexBuilder.addCollator({
     schedule,
     factory: DefaultTechDocsCollatorFactory.fromConfig(env.config, {
       discovery: env.discovery,
       logger: env.logger,
       tokenManager: env.tokenManager,
-    }),
-  });
-
-  indexBuilder.addCollator({
-    schedule,
-    factory: ToolDocumentCollatorFactory.fromConfig(env.config, {
-      discovery: env.discovery,
-      logger: env.logger,
     }),
   });
 

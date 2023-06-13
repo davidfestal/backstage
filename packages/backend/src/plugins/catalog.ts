@@ -17,9 +17,11 @@
 import { CatalogBuilder } from '@backstage/plugin-catalog-backend';
 import { ScaffolderEntitiesProcessor } from '@backstage/plugin-scaffolder-backend';
 import { Router } from 'express';
-import { PluginEnvironment } from '../types';
-import { DemoEventBasedEntityProvider } from './DemoEventBasedEntityProvider';
 import { UnprocessedEntitesModule } from '@backstage/plugin-catalog-backend-module-unprocessed';
+import {
+  LegacyBackendPluginInstaller,
+  PluginEnvironment,
+} from '@backstage/backend-plugin-manager';
 
 export default async function createPlugin(
   env: PluginEnvironment,
@@ -27,12 +29,15 @@ export default async function createPlugin(
   const builder = await CatalogBuilder.create(env);
   builder.addProcessor(new ScaffolderEntitiesProcessor());
 
-  const demoProvider = new DemoEventBasedEntityProvider({
-    logger: env.logger,
-    topics: ['example'],
-    eventBroker: env.eventBroker,
-  });
-  builder.addEntityProvider(demoProvider);
+  env.pluginProvider
+    .backendPlugins()
+    .map(p => p.installer)
+    .filter((i): i is LegacyBackendPluginInstaller => i.kind === 'legacy')
+    .forEach(i => {
+      if (i.catalog) {
+        i.catalog(builder, env);
+      }
+    });
 
   const { processingEngine, router } = await builder.build();
 

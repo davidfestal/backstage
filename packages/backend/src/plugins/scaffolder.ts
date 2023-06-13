@@ -20,9 +20,12 @@ import {
   createRouter,
 } from '@backstage/plugin-scaffolder-backend';
 import { Router } from 'express';
-import type { PluginEnvironment } from '../types';
 import { ScmIntegrations } from '@backstage/integration';
 import { createConfluenceToMarkdownAction } from '@backstage/plugin-scaffolder-backend-module-confluence-to-markdown';
+import {
+  LegacyBackendPluginInstaller,
+  PluginEnvironment,
+} from '@backstage/backend-plugin-manager';
 
 export default async function createPlugin(
   env: PluginEnvironment,
@@ -47,6 +50,16 @@ export default async function createPlugin(
       config: env.config,
       reader: env.reader,
     }),
+    ...env.pluginProvider
+      .backendPlugins()
+      .map(p => p.installer)
+      .filter((i): i is LegacyBackendPluginInstaller => i.kind === 'legacy')
+      .flatMap(({ scaffolder }) => {
+        if (scaffolder) {
+          return scaffolder(env);
+        }
+        return [];
+      }),
   ];
 
   return await createRouter({

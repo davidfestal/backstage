@@ -34,6 +34,7 @@ import {
   UrlReaders,
   useHotMemoize,
   ServerTokenManager,
+  resolvePackagePath,
 } from '@backstage/backend-common';
 import { TaskScheduler } from '@backstage/backend-tasks';
 import { Config } from '@backstage/config';
@@ -66,13 +67,17 @@ import lighthouse from './plugins/lighthouse';
 import linguist from './plugins/linguist';
 import devTools from './plugins/devtools';
 import nomad from './plugins/nomad';
-import { PluginEnvironment } from './types';
 import { ServerPermissionClient } from '@backstage/plugin-permission-node';
 import { DefaultIdentityClient } from '@backstage/plugin-auth-node';
 import { DefaultEventBroker } from '@backstage/plugin-events-backend';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import { metrics } from '@opentelemetry/api';
+import {
+  PluginManager,
+  BackendPluginProvider,
+  PluginEnvironment,
+} from '@backstage/backend-plugin-manager';
 
 // Expose opentelemetry metrics using a Prometheus exporter on
 // http://localhost:9464/metrics . See prometheus.yml in packages/backend for
@@ -82,7 +87,7 @@ const meterProvider = new MeterProvider();
 metrics.setGlobalMeterProvider(meterProvider);
 meterProvider.addMetricReader(exporter);
 
-function makeCreateEnv(config: Config) {
+function makeCreateEnv(config: Config, pluginProvider: BackendPluginProvider) {
   const root = getRootLogger();
   const reader = UrlReaders.default({ logger: root, config });
   const discovery = HostDiscovery.fromConfig(config);
@@ -120,6 +125,7 @@ function makeCreateEnv(config: Config) {
       permissions,
       scheduler,
       identity,
+      pluginProvider,
     };
   };
 }
@@ -138,7 +144,10 @@ async function main() {
     logger,
   });
 
-  const createEnv = makeCreateEnv(config);
+  const pluginManager = await PluginManager.fromConfig(config, logger);
+  const createEnv = makeCreateEnv(config, pluginManager);
+
+  logger.info(JSON.stringify(resolvePackagePath('@backstage/backend-common')));
 
   const healthcheckEnv = useHotMemoize(module, () => createEnv('healthcheck'));
   const catalogEnv = useHotMemoize(module, () => createEnv('catalog'));
@@ -201,6 +210,22 @@ async function main() {
   apiRouter.use('/linguist', await linguist(linguistEnv));
   apiRouter.use('/devtools', await devTools(devToolsEnv));
   apiRouter.use('/nomad', await nomad(nomadEnv));
+
+  for (const plugin of pluginManager.backendPlugins()) {
+    if (plugin.installer.kind === 'legacy') {
+      const pluginRouter = plugin.installer.router;
+      if (pluginRouter !== undefined) {
+        const pluginEnv = useHotMemoize(module, () =>
+          createEnv(pluginRouter.pluginID),
+        );
+        apiRouter.use(
+          `/${pluginRouter.pluginID}`,
+          await pluginRouter.createPlugin(pluginEnv),
+        );
+      }
+    }
+  }
+
   apiRouter.use(notFoundHandler());
 
   await lighthouse(lighthouseEnv);
