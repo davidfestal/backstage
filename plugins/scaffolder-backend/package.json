@@ -43,11 +43,13 @@
     "prepack": "backstage-cli package prepack",
     "postpack": "backstage-cli package postpack",
     "clean": "backstage-cli package clean",
-    "build:assets": "node scripts/build-nunjucks.js"
+    "build:assets": "node scripts/build-nunjucks.js",
+    "export-dynamic": "backstage-cli package export-dynamic-plugin"
   },
   "dependencies": {
     "@backstage/backend-common": "workspace:^",
     "@backstage/backend-plugin-api": "workspace:^",
+    "@backstage/backend-plugin-manager": "workspace:^",
     "@backstage/backend-tasks": "workspace:^",
     "@backstage/catalog-client": "workspace:^",
     "@backstage/catalog-model": "workspace:^",
@@ -60,6 +62,7 @@
     "@backstage/plugin-catalog-node": "workspace:^",
     "@backstage/plugin-permission-common": "workspace:^",
     "@backstage/plugin-permission-node": "workspace:^",
+    "@backstage/plugin-scaffolder-backend-module-confluence-to-markdown": "workspace:^",
     "@backstage/plugin-scaffolder-common": "workspace:^",
     "@backstage/plugin-scaffolder-node": "workspace:^",
     "@backstage/types": "workspace:^",
@@ -122,7 +125,10 @@
     "dist",
     "migrations",
     "config.d.ts",
-    "assets"
+    "assets",
+    "dist-dynamic/*.*",
+    "dist-dynamic/dist/**",
+    "dist-dynamic/alpha/*"
   ],
   "configSchema": "config.d.ts"
 }

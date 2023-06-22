@@ -49,7 +49,6 @@ import events from './plugins/events';
 import explore from './plugins/explore';
 import kafka from './plugins/kafka';
 import rollbar from './plugins/rollbar';
-import scaffolder from './plugins/scaffolder';
 import proxy from './plugins/proxy';
 import search from './plugins/search';
 import techdocs from './plugins/techdocs';
@@ -165,7 +164,6 @@ async function main() {
   const codeCoverageEnv = useHotMemoize(module, () =>
     createEnv('code-coverage'),
   );
-  const scaffolderEnv = useHotMemoize(module, () => createEnv('scaffolder'));
   const authEnv = useHotMemoize(module, () => createEnv('auth'));
   const azureDevOpsEnv = useHotMemoize(module, () => createEnv('azure-devops'));
   const proxyEnv = useHotMemoize(module, () => createEnv('proxy'));
@@ -198,7 +196,6 @@ async function main() {
   apiRouter.use('/code-coverage', await codeCoverage(codeCoverageEnv));
   apiRouter.use('/events', await events(eventsEnv));
   apiRouter.use('/rollbar', await rollbar(rollbarEnv));
-  apiRouter.use('/scaffolder', await scaffolder(scaffolderEnv));
   apiRouter.use('/tech-insights', await techInsights(techInsightsEnv));
   apiRouter.use('/auth', await auth(authEnv));
   apiRouter.use('/azure-devops', await azureDevOps(azureDevOpsEnv));
