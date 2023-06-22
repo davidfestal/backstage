@@ -41,7 +41,7 @@ export interface BackendRegisterInit {
 export class BackendInitializer {
   #startPromise?: Promise<void>;
   #features = new Array<InternalBackendFeature>();
-  #extensionPoints = new Map<ExtensionPoint<unknown>, unknown>();
+  #extensionPoints = new Map<string, unknown>();
   #serviceHolder: EnumerableServiceHolder;
 
   constructor(serviceHolder: EnumerableServiceHolder) {
@@ -56,9 +56,7 @@ export class BackendInitializer {
     const missingRefs = new Set<ServiceOrExtensionPoint>();
 
     for (const [name, ref] of Object.entries(deps)) {
-      const extensionPoint = this.#extensionPoints.get(
-        ref as ExtensionPoint<unknown>,
-      );
+      const extensionPoint = this.#extensionPoints.get(ref.id);
       if (extensionPoint) {
         result.set(name, extensionPoint);
       } else {
@@ -170,12 +168,12 @@ export class BackendInitializer {
 
         if (r.type === 'plugin') {
           for (const [extRef, extImpl] of r.extensionPoints) {
-            if (this.#extensionPoints.has(extRef)) {
+            if (this.#extensionPoints.has(extRef.id)) {
               throw new Error(
                 `ExtensionPoint with ID '${extRef.id}' is already registered`,
               );
             }
-            this.#extensionPoints.set(extRef, extImpl);
+            this.#extensionPoints.set(extRef.id, extImpl);
             provides.add(extRef);
           }
         }
