@@ -16,110 +16,182 @@
 import { Config } from '@backstage/config';
 import { ScannedPluginPackage, ScannedPluginManifest } from './types';
 import * as fs from 'fs/promises';
+import { Stats, lstatSync } from 'fs';
+import * as chokidar from 'chokidar';
 import * as path from 'path';
 import * as url from 'url';
-import { findPaths } from '@backstage/cli-common';
-import { PackageRoles } from '@backstage/cli-node';
+import { PackagePlatform, PackageRoles } from '@backstage/cli-node';
+import { LoggerService } from '@backstage/backend-plugin-api';
 
 export class PluginScanner {
-  private readonly config: Config;
+  private readonly logger: LoggerService;
+  private backstageRoot: string;
+  readonly #config: Config;
+  private _rootDirectory?: string;
   private readonly preferAlpha: boolean;
+  private configUnsubscribe?: () => void;
+  private rootDirectoryWatcher?: chokidar.FSWatcher;
+  private subscribers: (() => void)[] = [];
 
-  constructor(config: Config, preferAlpha: boolean) {
-    this.config = config;
+  constructor(
+    config: Config,
+    logger: LoggerService,
+    backstageRoot: string,
+    preferAlpha: boolean = false,
+  ) {
+    this.backstageRoot = backstageRoot;
+    this.logger = logger;
     this.preferAlpha = preferAlpha;
-    if (config.subscribe !== undefined) {
-      config.subscribe(async () => {
-        await this.scanRoot();
-        // TODO(davidfestal): compare with installed plugins
-      });
+    this.#config = config;
+
+    this.applyConfig();
+  }
+
+  subscribeToRootDirectoryChange(subscriber: () => void) {
+    this.subscribers.push(subscriber);
+  }
+
+  get rootDirectory(): string | undefined {
+    return this._rootDirectory;
+  }
+
+  private applyConfig(): void | never {
+    const dynamicPlugins = this.#config.getOptional('dynamicPlugins');
+    if (!dynamicPlugins) {
+      this.logger.info("'dynamicPlugins' config entry not found.");
+      this._rootDirectory = undefined;
+      return;
     }
+    if (typeof dynamicPlugins !== 'object') {
+      this.logger.warn("'dynamicPlugins' config entry should be an object.");
+      this._rootDirectory = undefined;
+      return;
+    }
+    if (!('rootDirectory' in dynamicPlugins)) {
+      this.logger.warn(
+        "'dynamicPlugins' config entry does not contain the 'rootDirectory' field.",
+      );
+      this._rootDirectory = undefined;
+      return;
+    }
+    if (typeof dynamicPlugins.rootDirectory !== 'string') {
+      this.logger.warn(
+        "'dynamicPlugins.rootDirectory' config entry should be a string.",
+      );
+      this._rootDirectory = undefined;
+      return;
+    }
+
+    const dynamicPluginsRootPath = path.isAbsolute(dynamicPlugins.rootDirectory)
+      ? dynamicPlugins.rootDirectory
+      : path.resolve(this.backstageRoot, dynamicPlugins.rootDirectory);
+
+    if (
+      !path
+        .dirname(path.normalize(dynamicPluginsRootPath))
+        .startsWith(path.normalize(this.backstageRoot))
+    ) {
+      const nodePath = process.env.NODE_PATH;
+      const backstageNodeModules = path.resolve(
+        this.backstageRoot,
+        'node_modules',
+      );
+      if (
+        !nodePath ||
+        !nodePath.split(path.delimiter).includes(backstageNodeModules)
+      ) {
+        throw new Error(
+          `Dynamic plugins under '${dynamicPluginsRootPath}' cannot access backstage modules in '${backstageNodeModules}'.\n` +
+            `Please add '${backstageNodeModules}' to the 'NODE_PATH' when running the backstage backend.`,
+        );
+      }
+    }
+    if (!lstatSync(dynamicPluginsRootPath).isDirectory()) {
+      throw new Error('Not a directory');
+    }
+
+    this._rootDirectory = dynamicPluginsRootPath;
   }
 
   async scanRoot(): Promise<ScannedPluginPackage[]> {
+    if (!this._rootDirectory) {
+      return [];
+    }
+
+    const dynamicPluginsLocation = this._rootDirectory;
     const scannedPlugins: ScannedPluginPackage[] = [];
-
-    const dynamicPlugins = this.config.getOptional('dynamicPlugins');
-    if (
-      typeof dynamicPlugins === 'object' &&
-      dynamicPlugins !== null &&
-      'rootDirectory' in dynamicPlugins &&
-      typeof dynamicPlugins.rootDirectory === 'string'
-    ) {
-      /* eslint-disable-next-line no-restricted-syntax */
-      const paths = findPaths(__dirname);
-
-      const dynamicPluginsRootPath = path.isAbsolute(
-        dynamicPlugins.rootDirectory,
-      )
-        ? dynamicPlugins.rootDirectory
-        : paths.resolveTargetRoot(dynamicPlugins.rootDirectory);
-
-      if (
-        !path
-          .dirname(path.normalize(dynamicPluginsRootPath))
-          .startsWith(path.normalize(paths.targetRoot))
-      ) {
-        const nodePath = process.env.NODE_PATH;
-        const backstageNodeModules = paths.resolveTargetRoot('node_modules');
-        if (
-          !nodePath ||
-          !nodePath.split(path.delimiter).includes(backstageNodeModules)
-        ) {
-          throw new Error(
-            `Dynamic plugins under '${dynamicPluginsRootPath}' cannot access backstage modules in '${backstageNodeModules}'.\n` +
-              `Please add '${backstageNodeModules}' to the 'NODE_PATH' when running the backstage backend.`,
+    for (const dirEnt of await fs.readdir(dynamicPluginsLocation, {
+      withFileTypes: true,
+    })) {
+      const pluginDir = dirEnt;
+      const pluginHome = path.resolve(dynamicPluginsLocation, pluginDir.name);
+      if (dirEnt.isSymbolicLink()) {
+        if (!(await fs.lstat(await fs.readlink(pluginHome))).isDirectory()) {
+          this.logger.info(
+            `skipping '${pluginHome}' since it is not a directory`,
           );
-        }
-      }
-
-      const userPluginsLocation = url.pathToFileURL(dynamicPluginsRootPath);
-      if (!(await fs.lstat(userPluginsLocation)).isDirectory()) {
-        throw new Error('Not a directory');
-      }
-      const pluginsDir = await fs.readdir(userPluginsLocation, {
-        withFileTypes: true,
-      });
-      if (pluginsDir.length === 0) {
-        return [];
-      }
-      for (const dirEnt of pluginsDir) {
-        const pluginDir = dirEnt;
-        const pluginHome = path.resolve(
-          userPluginsLocation.pathname,
-          pluginDir.name,
-        );
-        if (dirEnt.isSymbolicLink()) {
-          if (!(await fs.lstat(await fs.readlink(pluginHome))).isDirectory()) {
-            continue;
-          }
-        } else if (!dirEnt.isDirectory()) {
           continue;
         }
+      } else if (!dirEnt.isDirectory()) {
+        this.logger.info(
+          `skipping '${pluginHome}' since it is not a directory`,
+        );
+        continue;
+      }
 
-        let scannedPlugin = await this.scanDir(pluginHome);
+      let scannedPlugin: ScannedPluginPackage;
+      try {
+        scannedPlugin = await this.scanDir(pluginHome);
+      } catch (e) {
+        this.logger.error(
+          `failed to load dynamic plugin manifest from '${pluginHome}'`,
+          e,
+        );
+        continue;
+      }
 
-        const platform = PackageRoles.getRoleInfo(
+      let platform: PackagePlatform;
+      try {
+        platform = PackageRoles.getRoleInfo(
           scannedPlugin.manifest.backstage.role,
         ).platform;
-        if (platform === 'node') {
-          if (this.preferAlpha) {
-            const pluginHomeAlpha = path.resolve(pluginHome, 'alpha');
-            if ((await fs.lstat(pluginHomeAlpha)).isDirectory()) {
-              const backstage = scannedPlugin.manifest.backstage;
+      } catch (e) {
+        this.logger.error(
+          `failed to load dynamic plugin manifest from '${pluginHome}'`,
+          e,
+        );
+        continue;
+      }
+
+      if (platform === 'node') {
+        if (this.preferAlpha) {
+          const pluginHomeAlpha = path.resolve(pluginHome, 'alpha');
+          if ((await fs.lstat(pluginHomeAlpha)).isDirectory()) {
+            const backstage = scannedPlugin.manifest.backstage;
+            try {
               scannedPlugin = await this.scanDir(pluginHomeAlpha);
-              scannedPlugin.manifest.backstage = backstage;
+            } catch (e) {
+              this.logger.error(
+                `failed to load dynamic plugin manifest from '${pluginHomeAlpha}'`,
+                e,
+              );
+              continue;
             }
+            scannedPlugin.manifest.backstage = backstage;
+          } else {
+            this.logger.warn(
+              `skipping '${pluginHomeAlpha}' since it is not a directory`,
+            );
           }
         }
-
-        scannedPlugins.push(scannedPlugin);
       }
+
+      scannedPlugins.push(scannedPlugin);
     }
     return scannedPlugins;
   }
 
-  async scanDir(pluginHome: string): Promise<ScannedPluginPackage> {
+  private async scanDir(pluginHome: string): Promise<ScannedPluginPackage> {
     const manifestFile = path.resolve(pluginHome, 'package.json');
     const content = await fs.readFile(manifestFile);
     const manifest: ScannedPluginManifest = JSON.parse(content.toString());
@@ -127,5 +199,102 @@ export class PluginScanner {
       location: url.pathToFileURL(pluginHome),
       manifest: manifest,
     };
+  }
+
+  async trackChanges(): Promise<void> {
+    const setupRootDirectoryWatcher = async (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!this._rootDirectory) {
+          resolve();
+          return;
+        }
+        let ready = false;
+        this.rootDirectoryWatcher = chokidar
+          .watch(this._rootDirectory, {
+            ignoreInitial: true,
+            followSymlinks: true,
+          })
+          .on(
+            'all',
+            (
+              event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
+              eventPath: string,
+              _: Stats | undefined,
+            ): void => {
+              if (
+                (['addDir', 'unlinkDir'].includes(event) &&
+                  path.dirname(eventPath) === this._rootDirectory) ||
+                (['add', 'unlink', 'change'].includes(event) &&
+                  path.dirname(path.dirname(eventPath)) ===
+                    this._rootDirectory &&
+                  path.basename(eventPath) === 'package.json')
+              ) {
+                this.logger.info(
+                  `rootDirectory changed (${event} - ${eventPath}): scanning plugins again`,
+                );
+                this.subscribers.forEach(s => s());
+              } else {
+                this.logger.debug(
+                  `rootDirectory changed (${event} - ${eventPath}): no need to scan plugins again`,
+                );
+              }
+            },
+          )
+          .on('error', (error: Error) => {
+            this.logger.error(
+              `error while watching '${this.rootDirectory}'`,
+              error,
+            );
+            if (!ready) {
+              reject(error);
+            }
+          })
+          .on('ready', () => {
+            ready = true;
+            resolve();
+          });
+      });
+    };
+
+    await setupRootDirectoryWatcher();
+    if (this.#config.subscribe) {
+      const { unsubscribe } = this.#config.subscribe(
+        async (): Promise<void> => {
+          const oldRootDirectory = this._rootDirectory;
+          try {
+            this.applyConfig();
+          } catch (e) {
+            this.logger.error(
+              'failed to apply new config for dynamic plugins',
+              e,
+            );
+          }
+          if (oldRootDirectory !== this._rootDirectory) {
+            this.logger.info(
+              `rootDirectory changed in Config from '${oldRootDirectory}' to '${this._rootDirectory}'`,
+            );
+            this.subscribers.forEach(s => s());
+            if (this.rootDirectoryWatcher) {
+              await this.rootDirectoryWatcher.close();
+            }
+            await setupRootDirectoryWatcher();
+          }
+        },
+      );
+      this.configUnsubscribe = unsubscribe;
+    }
+  }
+
+  async untrackChanges() {
+    if (this.rootDirectoryWatcher) {
+      this.rootDirectoryWatcher.close();
+    }
+    if (this.configUnsubscribe) {
+      this.configUnsubscribe();
+    }
+  }
+
+  destructor() {
+    this.untrackChanges();
   }
 }

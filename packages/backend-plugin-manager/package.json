@@ -44,13 +44,16 @@
     "@backstage/plugin-search-backend-node": "workspace:^",
     "@backstage/plugin-search-common": "workspace:^",
     "@backstage/types": "workspace:^",
+    "chokidar": "^3.5.3",
     "express": "^4.18.1",
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "@backstage/backend-app-api": "workspace:^",
     "@backstage/backend-test-utils": "workspace:^",
     "@backstage/cli": "workspace:^",
-    "@types/cron": "^2.0.0",
+    "@backstage/config-loader": "workspace:^",
+    "mock-fs": "^5.2.0",
     "wait-for-expect": "^3.0.2"
   },
   "files": [

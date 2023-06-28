@@ -30,6 +30,7 @@ import {
   createServiceRef,
 } from '@backstage/backend-plugin-api';
 import { PackageRoles } from '@backstage/cli-node';
+import { findPaths } from '@backstage/cli-common';
 
 export class PluginManager implements BackendPluginProvider {
   static async fromConfig(
@@ -37,9 +38,49 @@ export class PluginManager implements BackendPluginProvider {
     logger: LoggerService,
     preferAlpha: boolean = false,
   ): Promise<PluginManager> {
-    const manager = new PluginManager(config, logger, preferAlpha);
-    const scannedPlugins = await manager.scanner.scanRoot();
-    for (const scannedPlugin of scannedPlugins) {
+    /* eslint-disable-next-line no-restricted-syntax */
+    const backstageRoot = findPaths(__dirname).targetRoot;
+    const scanner = new PluginScanner(
+      config,
+      logger,
+      backstageRoot,
+      preferAlpha,
+    );
+    scanner.trackChanges();
+    const manager = new PluginManager(logger, await scanner.scanRoot());
+    scanner.subscribeToRootDirectoryChange(async () => {
+      manager._scannedPlugins = await scanner.scanRoot();
+    });
+    manager.plugins.push(...(await manager.loadPlugins()));
+
+    return manager;
+  }
+
+  private readonly logger: LoggerService;
+  readonly plugins: DynamicPlugin[];
+  private _scannedPlugins: ScannedPluginPackage[];
+
+  private constructor(
+    logger: LoggerService,
+    scannedPlugins: ScannedPluginPackage[],
+  ) {
+    this.logger = logger;
+    this.plugins = [];
+    this._scannedPlugins = scannedPlugins;
+  }
+
+  get scannedPlugins(): ScannedPluginPackage[] {
+    return this._scannedPlugins;
+  }
+
+  addBackendPlugin(plugin: BackendDynamicPlugin): void {
+    this.plugins.push(plugin);
+  }
+
+  private async loadPlugins(): Promise<DynamicPlugin[]> {
+    const loadedPlugins: DynamicPlugin[] = [];
+
+    for (const scannedPlugin of this.scannedPlugins) {
       const platform = PackageRoles.getRoleInfo(
         scannedPlugin.manifest.backstage.role,
       ).platform;
@@ -48,12 +89,12 @@ export class PluginManager implements BackendPluginProvider {
         platform === 'node' &&
         scannedPlugin.manifest.backstage.role.includes('-plugin')
       ) {
-        const plugin = await manager.loadBackendPlugin(scannedPlugin);
+        const plugin = await this.loadBackendPlugin(scannedPlugin);
         if (plugin !== undefined) {
-          manager.plugins.push(plugin);
+          loadedPlugins.push(plugin);
         }
       } else {
-        manager.plugins.push({
+        loadedPlugins.push({
           name: scannedPlugin.manifest.name,
           version: scannedPlugin.manifest.version,
           platform: 'web',
@@ -62,25 +103,7 @@ export class PluginManager implements BackendPluginProvider {
         });
       }
     }
-    return manager;
-  }
-
-  private readonly logger: LoggerService;
-  private readonly scanner: PluginScanner;
-  readonly plugins: DynamicPlugin[];
-
-  private constructor(
-    config: Config,
-    logger: LoggerService,
-    preferAlpha: boolean,
-  ) {
-    this.logger = logger;
-    this.scanner = new PluginScanner(config, preferAlpha);
-    this.plugins = [];
-  }
-
-  addBackendPlugin(plugin: BackendDynamicPlugin): void {
-    this.plugins.push(plugin);
+    return loadedPlugins;
   }
 
   private async loadBackendPlugin(
@@ -94,7 +117,7 @@ export class PluginManager implements BackendPluginProvider {
         /* webpackIgnore: true */ path
       );
       if (!isBackendDynamicPluginInstaller(dynamicPluginInstaller)) {
-        this.logger.info(
+        this.logger.error(
           `dynamic backend plugin '${plugin.manifest.name}' could not be loaded from '${plugin.location}': no exported 'dynamicPluginInstaller' field`,
         );
         return undefined;
@@ -111,7 +134,7 @@ export class PluginManager implements BackendPluginProvider {
       };
     } catch (error) {
       this.logger.error(
-        `Failed while loading dynamic backend plugin '${plugin.manifest.name}' from '${plugin.location}'`,
+        `an error occured while loading dynamic backend plugin '${plugin.manifest.name}' from '${plugin.location}'`,
         error,
       );
       return undefined;

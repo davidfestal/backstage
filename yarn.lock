@@ -3774,6 +3774,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@backstage/backend-plugin-manager@workspace:packages/backend-plugin-manager"
   dependencies:
+    "@backstage/backend-app-api": "workspace:^"
     "@backstage/backend-common": "workspace:^"
     "@backstage/backend-plugin-api": "workspace:^"
     "@backstage/backend-tasks": "workspace:^"
@@ -3782,6 +3783,7 @@ __metadata:
     "@backstage/cli-common": "workspace:^"
     "@backstage/cli-node": "workspace:^"
     "@backstage/config": "workspace:^"
+    "@backstage/config-loader": "workspace:^"
     "@backstage/errors": "workspace:^"
     "@backstage/plugin-auth-node": "workspace:^"
     "@backstage/plugin-catalog-backend": "workspace:^"
@@ -3793,8 +3795,9 @@ __metadata:
     "@backstage/plugin-search-backend-node": "workspace:^"
     "@backstage/plugin-search-common": "workspace:^"
     "@backstage/types": "workspace:^"
-    "@types/cron": ^2.0.0
+    chokidar: ^3.5.3
     express: ^4.18.1
+    mock-fs: ^5.2.0
     wait-for-expect: ^3.0.2
     winston: ^3.2.1
   languageName: unknown
