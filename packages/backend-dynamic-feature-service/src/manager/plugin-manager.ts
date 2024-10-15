@@ -70,18 +70,29 @@ export class DynamicPluginManager implements DynamicPluginProvider {
     const scannedPlugins = (await scanner.scanRoot()).packages;
     scanner.trackChanges();
     const moduleLoader =
-      options.moduleLoader || new CommonJSModuleLoader(options.logger);
+      options.moduleLoader ||
+      new CommonJSModuleLoader({ logger: options.logger });
     const manager = new DynamicPluginManager(
       options.logger,
       scannedPlugins,
       moduleLoader,
     );
 
-    const dynamicPluginsPaths = scannedPlugins.map(p =>
-      fs.realpathSync(url.fileURLToPath(p.location)),
+    const scannedPluginManifestsPerRealPath = new Map(
+      scannedPlugins.map(p => [
+        fs.realpathSync(url.fileURLToPath(p.location)),
+        p.manifest,
+      ]),
     );
 
-    await moduleLoader.bootstrap(backstageRoot, dynamicPluginsPaths);
+    // Add the buildDynamicPluginPackages implementation here
+    // and pass a third argument to the model loader (path == the key of
+    // a map, instead of having an array of structs with path as a field)
+    await moduleLoader.bootstrap(
+      backstageRoot,
+      [...scannedPluginManifestsPerRealPath.keys()],
+      scannedPluginManifestsPerRealPath,
+    );
 
     scanner.subscribeToRootDirectoryChange(async () => {
       manager._availablePackages = (await scanner.scanRoot()).packages;
