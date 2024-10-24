@@ -146,10 +146,11 @@ export type DynamicPluginsFeatureLoaderOptions = DynamicPluginsFactoryOptions &
 export const dynamicPluginsFrontendSchemas: BackendFeature;
 
 // @public (undocumented)
-export type DynamicPluginsRootLoggerFactoryOptions = Omit<
-  WinstonLoggerOptions,
-  'meta'
->;
+export type DynamicPluginsRootLoggerFactoryOptions = {
+  [K in keyof Omit<WinstonLoggerOptions, 'meta'>]:
+    | WinstonLoggerOptions[K]
+    | ((config: Config) => WinstonLoggerOptions[K]);
+};
 
 // @public @deprecated (undocumented)
 export const dynamicPluginsRootLoggerServiceFactory: ((

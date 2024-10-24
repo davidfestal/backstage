@@ -27,14 +27,16 @@ import { transports, format } from 'winston';
 import { loadConfigSchema } from '@backstage/config-loader';
 import { getPackages } from '@manypkg/get-packages';
 import { dynamicPluginsSchemasServiceRef } from './schemas';
+import { Config } from '@backstage/config';
 
 /**
  * @public
  */
-export type DynamicPluginsRootLoggerFactoryOptions = Omit<
-  WinstonLoggerOptions,
-  'meta'
->;
+export type DynamicPluginsRootLoggerFactoryOptions = {
+  [K in keyof Omit<WinstonLoggerOptions, 'meta'>]:
+    | WinstonLoggerOptions[K]
+    | ((config: Config) => WinstonLoggerOptions[K]);
+};
 
 const dynamicPluginsRootLoggerServiceFactoryWithOptions = (
   options?: DynamicPluginsRootLoggerFactoryOptions,
@@ -46,6 +48,22 @@ const dynamicPluginsRootLoggerServiceFactoryWithOptions = (
       schemas: dynamicPluginsSchemasServiceRef,
     },
     async factory({ config, schemas }) {
+      let overriddenLoggerOptions: WinstonLoggerOptions = {};
+      if (options) {
+        overriddenLoggerOptions = Object.fromEntries(
+          Object.keys(options).map(k => {
+            const optionValue =
+              options[k as keyof DynamicPluginsRootLoggerFactoryOptions];
+            return [
+              k,
+              typeof optionValue === 'function'
+                ? optionValue(config)
+                : optionValue,
+            ];
+          }),
+        );
+      }
+
       const logger = WinstonLogger.create({
         level: process.env.LOG_LEVEL || 'info',
         format:
@@ -53,7 +71,7 @@ const dynamicPluginsRootLoggerServiceFactoryWithOptions = (
             ? format.json()
             : WinstonLogger.colorFormat(),
         transports: [new transports.Console()],
-        ...options,
+        ...overriddenLoggerOptions,
         meta: {
           service: 'backstage',
         },
