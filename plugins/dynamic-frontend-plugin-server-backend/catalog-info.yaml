@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage-plugin-dynamic-frontend-plugin-server-backend
+  title: '@backstage/plugin-dynamic-frontend-plugin-server-backend'
+spec:
+  lifecycle: experimental
+  type: backstage-backend-plugin
+  owner: maintainers
