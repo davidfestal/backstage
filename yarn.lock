@@ -3673,7 +3673,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@backstage/backend-dynamic-feature-service@workspace:packages/backend-dynamic-feature-service":
+"@backstage/backend-dynamic-feature-service@workspace:^, @backstage/backend-dynamic-feature-service@workspace:packages/backend-dynamic-feature-service":
   version: 0.0.0-use.local
   resolution: "@backstage/backend-dynamic-feature-service@workspace:packages/backend-dynamic-feature-service"
   dependencies:
@@ -6583,6 +6583,24 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
+  languageName: unknown
+  linkType: soft
+
+"@backstage/plugin-dynamic-frontend-plugin-server-backend@^0.0.0, @backstage/plugin-dynamic-frontend-plugin-server-backend@workspace:plugins/dynamic-frontend-plugin-server-backend":
+  version: 0.0.0-use.local
+  resolution: "@backstage/plugin-dynamic-frontend-plugin-server-backend@workspace:plugins/dynamic-frontend-plugin-server-backend"
+  dependencies:
+    "@backstage/backend-defaults": "workspace:^"
+    "@backstage/backend-dynamic-feature-service": "workspace:^"
+    "@backstage/backend-plugin-api": "workspace:^"
+    "@backstage/backend-test-utils": "workspace:^"
+    "@backstage/cli": "workspace:^"
+    "@backstage/errors": "workspace:^"
+    "@types/express": "*"
+    "@types/supertest": ^2.0.8
+    express: ^4.17.1
+    express-promise-router: ^4.1.0
+    supertest: ^6.2.4
   languageName: unknown
   linkType: soft
 
@@ -27512,6 +27530,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"example-app-next@link:../app-next::locator=example-backend%40workspace%3Apackages%2Fbackend":
+  version: 0.0.0-use.local
+  resolution: "example-app-next@link:../app-next::locator=example-backend%40workspace%3Apackages%2Fbackend"
+  languageName: node
+  linkType: soft
+
 "example-app-next@workspace:packages/app-next":
   version: 0.0.0-use.local
   resolution: "example-app-next@workspace:packages/app-next"
@@ -27726,6 +27750,7 @@ __metadata:
   resolution: "example-backend@workspace:packages/backend"
   dependencies:
     "@backstage/backend-defaults": "workspace:^"
+    "@backstage/backend-dynamic-feature-service": "workspace:^"
     "@backstage/backend-plugin-api": "workspace:^"
     "@backstage/catalog-model": "workspace:^"
     "@backstage/cli": "workspace:^"
@@ -27740,6 +27765,7 @@ __metadata:
     "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "workspace:^"
     "@backstage/plugin-catalog-backend-module-unprocessed": "workspace:^"
     "@backstage/plugin-devtools-backend": "workspace:^"
+    "@backstage/plugin-dynamic-frontend-plugin-server-backend": ^0.0.0
     "@backstage/plugin-events-backend": "workspace:^"
     "@backstage/plugin-kubernetes-backend": "workspace:^"
     "@backstage/plugin-notifications-backend": "workspace:^"
@@ -27762,6 +27788,7 @@ __metadata:
     "@opentelemetry/exporter-prometheus": ^0.54.0
     "@opentelemetry/sdk-node": ^0.54.0
     example-app: "link:../app"
+    example-app-next: "link:../app-next"
   languageName: unknown
   linkType: soft
 
@@ -28703,6 +28730,18 @@ __metadata:
     node-domexception: 1.0.0
     web-streams-polyfill: 4.0.0-beta.3
   checksum: d91d4f667cfed74827fc281594102c0dabddd03c9f8b426fc97123eedbf73f5060ee43205d89284d6854e2fc5827e030cd352ef68b93beda8decc2d72128c576
+  languageName: node
+  linkType: hard
+
+"formidable@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "formidable@npm:2.1.2"
+  dependencies:
+    dezalgo: ^1.0.4
+    hexoid: ^1.0.0
+    once: ^1.4.0
+    qs: ^6.11.0
+  checksum: 81c8e5d89f5eb873e992893468f0de22c01678ca3d315db62be0560f9de1c77d4faefc9b1f4575098eb2263b3c81ba1024833a9fc3206297ddbac88a4f69b7a8
   languageName: node
   linkType: hard
 
@@ -42940,6 +42979,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"superagent@npm:^8.1.2":
+  version: 8.1.2
+  resolution: "superagent@npm:8.1.2"
+  dependencies:
+    component-emitter: ^1.3.0
+    cookiejar: ^2.1.4
+    debug: ^4.3.4
+    fast-safe-stringify: ^2.1.1
+    form-data: ^4.0.0
+    formidable: ^2.1.2
+    methods: ^1.1.2
+    mime: 2.6.0
+    qs: ^6.11.0
+    semver: ^7.3.8
+  checksum: f3601c5ccae34d5ba684a03703394b5d25931f4ae2e1e31a1de809f88a9400e997ece037f9accf148a21c408f950dc829db1e4e23576a7f9fe0efa79fd5c9d2f
+  languageName: node
+  linkType: hard
+
 "superagent@npm:^9.0.1":
   version: 9.0.2
   resolution: "superagent@npm:9.0.2"
@@ -42954,6 +43011,16 @@ __metadata:
     mime: 2.6.0
     qs: ^6.11.0
   checksum: f471461b21f034d844fd0aca332128d61e3afb75c2ee5950f3339f2a3b5ca8b23e2861224f19ad9b43f21c9184d28b7d9384af5a4fde64fdef479efdb15036db
+  languageName: node
+  linkType: hard
+
+"supertest@npm:^6.2.4":
+  version: 6.3.4
+  resolution: "supertest@npm:6.3.4"
+  dependencies:
+    methods: ^1.1.2
+    superagent: ^8.1.2
+  checksum: 875c6fa7940f21e5be9bb646579cdb030d4057bf2da643e125e1f0480add1200395d2b17e10b8e54e1009efc63e047422501e9eb30e12828668498c0910f295f
   languageName: node
   linkType: hard
 
