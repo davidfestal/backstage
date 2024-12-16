@@ -16,8 +16,11 @@
 
 import ReactDOM from 'react-dom/client';
 import { createPublicSignInApp } from '@backstage/frontend-defaults';
-import '@backstage/canon/css/styles.css';
+import homePlugin from '@backstage/plugin-home/alpha';
+import { dynamicFrontendFeaturesLoader } from '@backstage/frontend-dynamic-feature-loader';
 
-const app = createPublicSignInApp();
+const app = createPublicSignInApp({
+  features: [homePlugin, dynamicFrontendFeaturesLoader()],
+});
 
 ReactDOM.createRoot(document.getElementById('root')!).render(app.createRoot());
