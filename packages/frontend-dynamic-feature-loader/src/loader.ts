@@ -182,3 +182,6 @@ function isLoadable(obj: unknown): obj is FrontendFeature {
   }
   return false;
 }
+
+export const defaultDynamicFrontendFeaturesLoader =
+  dynamicFrontendFeaturesLoader();

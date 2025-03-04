@@ -21,3 +21,4 @@
  */
 
 export * from './loader';
+export { defaultDynamicFrontendFeaturesLoader as default } from './loader';

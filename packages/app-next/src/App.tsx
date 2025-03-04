@@ -15,21 +15,17 @@
  */
 
 import { createApp } from '@backstage/frontend-defaults';
-import { dynamicFrontendFeaturesLoader } from '@backstage/frontend-dynamic-feature-loader';
-import appVisualizerPlugin from '@backstage/plugin-app-visualizer';
-import catalogPlugin from '@backstage/plugin-catalog/alpha';
-import scaffolderPlugin from '@backstage/plugin-scaffolder/alpha';
-import searchPlugin from '@backstage/plugin-search/alpha';
-import homePlugin from '@backstage/plugin-home/alpha';
 
 const app = createApp({
   features: [
+    /*
     appVisualizerPlugin,
     catalogPlugin,
     scaffolderPlugin,
     searchPlugin,
     homePlugin,
     dynamicFrontendFeaturesLoader(),
+*/
   ],
 });
 

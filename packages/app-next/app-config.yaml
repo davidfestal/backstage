@@ -1,7 +1,13 @@
 app:
   experimental:
     packages:
-      include: []
+      include:
+        - '@backstage/frontend-dynamic-feature-loader'
+        - '@backstage/plugin-app-visualizer'
+        - '@backstage/plugin-catalog'
+        - '@backstage/plugin-scaffolder'
+        - '@backstage/plugin-search'
+        - '@backstage/plugin-home'
   extensions:
     - page:home:
         config:
