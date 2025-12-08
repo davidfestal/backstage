@@ -111,7 +111,7 @@ export function dynamicFrontendFeaturesLoader(
             instance = options.moduleFederation.instance;
           }
         } else {
-          const { shared, errors } = await buildRuntimeSharedUserOption();
+          const { shared, errors } = await buildRuntimeSharedUserOption(config);
           for (const err of errors) {
             error(err.message, err.cause);
           }

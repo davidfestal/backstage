@@ -18,6 +18,9 @@ import { Host, Runtime, SharedDependencies } from './types';
 import { default as serialize } from 'serialize-javascript';
 import type { UserOptions } from '@module-federation/runtime/types';
 import { ForwardedError } from '@backstage/errors';
+import { Config } from '@backstage/config';
+import { getConfiguredHostSharedDependencies } from './config';
+import { mergeSharedDependencies } from './merge';
 
 const BACKSTAGE_RUNTIME_SHARED_DEPENDENCIES_GLOBAL =
   '__backstage-module-federation-shared-dependencies__';
@@ -67,22 +70,26 @@ export function prepareRuntimeSharedDependenciesScript(
 
 /**
  * Builds the list of shared dependencies provided to the module federation runtime.
- * It uses the runtime shared dependencies script prepared by {@link prepareRuntimeSharedDependenciesScript}.
+ * It uses the runtime shared dependencies script prepared by {@link prepareRuntimeSharedDependenciesScript}
+ * and allows overriding them with the shared dependencies configured in the application config read at runtime.
  *
  * @public
  */
-export async function buildRuntimeSharedUserOption(): Promise<{
+export async function buildRuntimeSharedUserOption(config?: Config): Promise<{
   shared: UserOptions['shared'];
   errors: ForwardedError[];
 }> {
-  const runtimeSharedDependencies =
+  const runtimeSharedDependencies = mergeSharedDependencies<Host, Runtime>(
     (
       window as {
         [BACKSTAGE_RUNTIME_SHARED_DEPENDENCIES_GLOBAL]?: SharedDependencies<
           Host & Runtime
         >;
       }
-    )[BACKSTAGE_RUNTIME_SHARED_DEPENDENCIES_GLOBAL] ?? {};
+    )[BACKSTAGE_RUNTIME_SHARED_DEPENDENCIES_GLOBAL] ?? {},
+    config ? getConfiguredHostSharedDependencies(config) : {},
+    'ignore-additions',
+  );
 
   const result: UserOptions['shared'] = {};
   const errors: ForwardedError[] = [];

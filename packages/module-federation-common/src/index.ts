@@ -23,6 +23,10 @@
  */
 
 export {
+  sharedDependenciesConfigKey,
+  getConfiguredHostSharedDependencies,
+} from './config';
+export {
   prepareRuntimeSharedDependenciesScript,
   buildRuntimeSharedUserOption,
 } from './runtime';
@@ -30,4 +34,10 @@ export {
   defaultHostSharedDependencies,
   defaultRemoteSharedDependencies,
 } from './defaults';
-export type { Host, Remote, SharedDependencies } from './types';
+export { mergeSharedDependencies } from './merge';
+export type {
+  ConfiguredSharedDependencies,
+  Host,
+  Remote,
+  SharedDependencies,
+} from './types';

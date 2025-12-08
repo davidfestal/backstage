@@ -67,3 +67,29 @@ export type Runtime = {
   version: string;
   module: () => Promise<any>;
 };
+
+/**
+ * Configuration to override the default shared dependencies for
+ * either the module federation host or remote modules.
+ *
+ * Notes:
+ * - When a shared dependency is set to `false`, it will be removed from the default shared dependencies.
+ * - For Remote modules only: Individual optional fields can be set to `null` to remove them from the default configuration.
+ *   This allows fields like `requiredVersion` to become undefined and be auto-filled from package.json.
+ * - For Host configuration: `null` is not useful, and anyway it would get stripped at app-config loading.
+ *
+ * @public
+ */
+export type ConfiguredSharedDependencies<ContextFields> = {
+  [K in keyof SharedDependencies<ContextFields>]:
+    | SharedDependencies<
+        Remote extends ContextFields
+          ? {
+              [F in keyof ContextFields]: undefined extends ContextFields[F]
+                ? ContextFields[F] | null
+                : ContextFields[F];
+            }
+          : ContextFields
+      >[K]
+    | false;
+};

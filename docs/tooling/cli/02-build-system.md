@@ -272,7 +272,7 @@ JavaScript.
 
 ### Building Module Federation Remotes
 
-Frontend plugin packages can be built as module federation remotes, which allows them to be loaded dynamically at runtime by a module federation host (typically your main frontend app). To build a package as a module federation remote, use the `--module-federation` option with the `package build` command.
+Frontend plugin packages can be built as module federation remotes, which allows them to be loaded dynamically at runtime by a module federation host (typically your main frontend app). To build a package as a module federation remote, use the `--module-federation` or `--module-federation.shared-dependencies` options with the `package build` command.
 
 More details are given in the [Module Federation](../../frontend-system/building-apps/07-module-federation.md#building-module-federation-remotes) documentation.
 

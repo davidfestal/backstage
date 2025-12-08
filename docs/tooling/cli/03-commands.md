@@ -201,6 +201,7 @@ Options:
   --stats                    If bundle stats are available, write them to the output directory. Applies to app packages only.
   --config <path>            Config files to load instead of app-config.yaml. Applies to app packages only. (default: [])
   --module-federation        Build a package as a module federation remote. Applies to frontend plugin packages only.
+  --module-federation.shared-dependencies <json>  Optional JSON configuration for module federation shared dependencies. Applies to frontend plugin packages only.
 ```
 
 ## package lint

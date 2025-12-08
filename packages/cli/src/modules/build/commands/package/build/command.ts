@@ -23,6 +23,7 @@ import { buildFrontend } from '../../../lib/buildFrontend';
 import { buildBackend } from '../../../lib/buildBackend';
 import { isValidUrl } from '../../../lib/urls';
 import chalk from 'chalk';
+import { parseConfiguredRemoteSharedDependencies } from '../../../lib/bundler/moduleFederation';
 
 export async function command(opts: OptionValues): Promise<void> {
   const webpack = process.env.LEGACY_WEBPACK_BUILD
@@ -55,7 +56,9 @@ export async function command(opts: OptionValues): Promise<void> {
     });
   }
 
-  let isModuleFederationRemote: boolean | undefined = undefined;
+  let isModuleFederationRemote: Parameters<
+    typeof buildFrontend
+  >[0]['isModuleFederationRemote'] = undefined;
   if ((role as string) === 'frontend-dynamic-container') {
     console.log(
       chalk.yellow(
@@ -66,6 +69,22 @@ export async function command(opts: OptionValues): Promise<void> {
   }
   if (opts.moduleFederation) {
     isModuleFederationRemote = true;
+  }
+  if (opts['moduleFederation.sharedDependencies']) {
+    try {
+      isModuleFederationRemote = {
+        sharedDependencies: parseConfiguredRemoteSharedDependencies(
+          opts['moduleFederation.sharedDependencies'],
+        ),
+      };
+    } catch (error) {
+      console.error(
+        chalk.red(
+          `Failed to parse module federation shared dependencies: ${error}`,
+        ),
+      );
+      throw error;
+    }
   }
 
   if (isModuleFederationRemote) {

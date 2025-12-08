@@ -25,19 +25,29 @@ import {
   SharedDependencies,
   Host,
   prepareRuntimeSharedDependenciesScript,
+  ConfiguredSharedDependencies,
+  Remote,
   defaultRemoteSharedDependencies,
+  getConfiguredHostSharedDependencies,
   defaultHostSharedDependencies,
+  mergeSharedDependencies,
 } from '@backstage/module-federation-common';
 import { dirname, join as joinPath, resolve as resolvePath } from 'path';
 import fs from 'fs-extra';
 import chokidar from 'chokidar';
 import PQueue from 'p-queue';
+import { Config } from '@backstage/config';
+import { z } from 'zod';
+import { fromZodError } from 'zod-validation-error';
 
 // Remote modules management utilities
 
 export async function getModuleFederationRemoteOptions(
   packageJson: BackstagePackageJson,
   packageDir: string,
+  configuredSharedDependencies:
+    | ConfiguredSharedDependencies<Remote>
+    | undefined,
 ): Promise<ModuleFederationRemoteOptions | undefined> {
   let exposes: ModuleFederationRemoteOptions['exposes'];
   const packageRole = packageJson.backstage?.role;
@@ -76,11 +86,59 @@ export async function getModuleFederationRemoteOptions(
       .replaceAll('/', '__')
       .replaceAll('-', '_'),
     exposes,
-    sharedDependencies: defaultRemoteSharedDependencies(),
+    sharedDependencies: mergeSharedDependencies(
+      defaultRemoteSharedDependencies(),
+      configuredSharedDependencies,
+      'allow-additions',
+    ),
   };
 }
 
+// zod schema that corresponds to the ConfiguredSharedDependencies<Remote> type
+const configuredRemoteSharedDependenciesSchema = z.record(
+  z.string(),
+  z.union([
+    z.object({
+      version: z.union([z.string(), z.literal(false)]).nullish(),
+      requiredVersion: z.union([z.string(), z.literal(false)]).nullish(),
+      singleton: z.boolean().optional(),
+      import: z.literal(false).nullish(),
+    }),
+    z.literal(false),
+  ]),
+);
+
+export function parseConfiguredRemoteSharedDependencies(
+  json: string,
+): ConfiguredSharedDependencies<Remote> {
+  const parsed = configuredRemoteSharedDependenciesSchema.safeParse(
+    JSON.parse(json),
+  );
+  if (!parsed.success) {
+    throw new Error(
+      `Invalid module federation shared dependencies: ${JSON.stringify(
+        fromZodError(parsed.error).message,
+      )}.`,
+    );
+  }
+  return parsed.data;
+}
+
 // Module federation host management utilities
+
+// zod schema that corresponds to the ConfiguredSharedDependencies<Host> type
+const configuredHostSharedDependenciesSchema = z.record(
+  z.string(),
+  z.union([
+    z.object({
+      version: z.string().optional(),
+      requiredVersion: z.union([z.string(), z.literal(false)]),
+      singleton: z.boolean().optional(),
+      eager: z.boolean().optional(),
+    }),
+    z.literal(false),
+  ]),
+);
 
 const RUNTIME_SHARED_DEPENDENCIES_MODULE_NAME =
   '__backstage-module-federation-runtime-shared-dependencies__';
@@ -150,13 +208,30 @@ function resolveSharedDependencyVersions(
 }
 
 export async function createRuntimeSharedDependeciesEntryPoint(options: {
+  config: Config;
   targetPath: string;
   watch?: () => void;
 }): Promise<string[]> {
-  const { targetPath, watch } = options;
+  const { config, targetPath, watch } = options;
 
   const doWriteSharedDependenciesModule = async () => {
-    const sharedDependencies = defaultHostSharedDependencies();
+    const parsedConfiguredHostSharedDependencies =
+      configuredHostSharedDependenciesSchema.safeParse(
+        getConfiguredHostSharedDependencies(config),
+      );
+    if (!parsedConfiguredHostSharedDependencies.success) {
+      throw new Error(
+        `Invalid module federation shared dependencies in application config: ${JSON.stringify(
+          fromZodError(parsedConfiguredHostSharedDependencies.error).message,
+        )}.`,
+      );
+    }
+
+    const sharedDependencies = mergeSharedDependencies(
+      defaultHostSharedDependencies(),
+      parsedConfiguredHostSharedDependencies.data,
+      'allow-additions',
+    );
     await writeRuntimeSharedDependenciesModule(
       targetPath,
       resolveSharedDependencyVersions(targetPath, sharedDependencies),

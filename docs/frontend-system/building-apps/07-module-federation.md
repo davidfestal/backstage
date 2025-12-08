@@ -32,16 +32,53 @@ A critical aspect of module federation is **shared dependencies**. When a host l
 - Ensure singleton dependencies (like React) only have one instance
 - Enable context sharing between host and remotes
 
-Backstage provides a list of default shared dependencies for common packages like React, React Router, and Material-UI. At build-time the `version` field is automatically resolved from your `package.json` files.
+Backstage provides a list of default shared dependencies and allows you to configure additional ones at multiple levels.
+
+### Configuration Levels and Merging
+
+Module federation shared dependencies can be configured at three levels:
+
+1. **Default Configuration**: Backstage provides default shared dependencies for common packages like React, React Router, and Material-UI
+2. **Build-time Configuration**: when building, configuration can be provided for both the host and remotes to specify additional shared dependencies, update properties of some default shared dependency or even remove it. At build-time the `version` field is automatically resolved from your `package.json` files.
+3. **Runtime Configuration** (Host Only): The host can override shared dependencies via runtime application configuration files, using the same configuration schema as the build-time configuration. Runtime configuration cannot add new shared dependencies because:
+   - versions need to be resolved at build time
+   - related packages need to be bundled into the host frontend application bundle during the build
 
 ## Building the Module Federation Host
 
 The module federation host is your main frontend application. By default, Backstage frontend applications include a default list of module federation shared dependencies.
 
-When building and bundling the frontend application, the CLI automatically:
+### Build-time Configuration
 
-1. Resolves versions of the shared dependencies based on the monorepo dependencies
-2. Adds an additional entrypoint to the frontend application bundle with the list of resolved runtime shared dependencies
+You can override the default shared dependencies list using the `app.moduleFederation.sharedDependencies` configuration in your `app-config.yaml`:
+
+```yaml
+app:
+  moduleFederation:
+    sharedDependencies:
+      # Override a default shared dependency
+      '@emotion/react':
+        eager: false
+
+      # Remove a default shared dependency
+      '@emotion/react': false
+
+      # Add a new shared dependency
+      '@backstage/core-components':
+        singleton: true
+```
+
+When building and bundling the frontend application, the resulting list of shared dependencies will be resolved and made available for the frontend application to use at runtime.
+
+The CLI automatically:
+
+1. Merges default shared dependencies with any configured ones in the build-time application configuration
+2. Resolves versions of the merged shared dependencies based on the monorepo dependencies
+3. Adds an additional entrypoint to the frontend application bundle with the list of resolved runtime shared dependencies
+
+### Runtime Configuration
+
+At runtime, any shared dependency mentioned in the runtime application configuration using the `app.moduleFederation.sharedDependencies` key, will override the shared dependencies resolved at build time and included in the frontend application bundle. However, new shared dependencies cannot be added at runtime, and will be skipped with a console warning.
 
 ## Building Module Federation Remotes
 
@@ -56,12 +93,25 @@ cd plugins/my-plugin
 yarn build --module-federation
 ```
 
+If you need to configure the shared dependencies for the remote, you can use the `--module-federation.shared-dependencies` option:
+
+```bash
+# Add or override a shared dependency
+yarn build --module-federation.shared-dependencies '{"@backstage/core-components":{"singleton":true}}'
+
+# Set requiredVersion to null to auto-fill from package.json
+yarn build --module-federation.shared-dependencies '{"react":{"singleton":true,"requiredVersion":null}}'
+```
+
+As shown in the example above, remote-specific optional fields like `requiredVersion` can be set to `null` in order to explicitly remove them from the Backstage default configuration and switch to the module federation standard default behavior.
+
 ### Build Output
 
 When building a plugin as a module federation remote, the CLI:
 
-1. Resolves versions of the shared dependencies based on the monorepo dependencies (done automatically by the Rspack/Webpack module federation plugin)
-2. Produces the bundle assets in the `dist` folder, including:
+1. Merges default shared dependencies with any configured ones in the command-line argument configuration
+2. Resolves versions of the merged shared dependencies based on the monorepo dependencies (done automatically by the Rsack/Webpack module federation plugin)
+3. Produces the bundle assets in the `dist` folder, including:
    - a `mf-manifest.json` file which contains the module federation manifest
    - a `remoteEntry.js` file which is the main entrypoint for the remote module
 
@@ -79,10 +129,13 @@ import {
   ModuleFederation,
 } from '@module-federation/enhanced/runtime';
 import { buildRuntimeSharedUserOption } from '@backstage/module-federation-common';
+import { ConfigApi } from '@backstage/frontend-plugin-api';
 
-export async function initializeModuleFederation(): Promise<ModuleFederation> {
+export async function initializeModuleFederation(
+  config: ConfigApi,
+): Promise<ModuleFederation> {
   // Build the shared dependencies configuration
-  const { shared, errors } = await buildRuntimeSharedUserOption();
+  const { shared, errors } = await buildRuntimeSharedUserOption(config);
 
   // Log any errors loading shared dependencies
   if (errors.length > 0) {
@@ -127,9 +180,9 @@ const moduleFederationInstance = createInstance({
 });
 
 const moduleFederationLoader = createFrontendFeatureLoader({
-  async loader() {
+  async loader({ config }) {
     moduleFederationInstance.registerShared(
-      (await buildRuntimeSharedUserOption()).shared,
+      (await buildRuntimeSharedUserOption(config)).shared,
     );
     moduleFederationInstance.registerRemotes([
       {
@@ -168,6 +221,60 @@ export default app.createRoot();
 
 The [`dynamicFrontendFeaturesLoader`](https://github.com/backstage/backstage/blob/master/packages/frontend-dynamic-feature-loader/src/loader.ts) provided in the [`@backstage/frontend-dynamic-feature-loader`](https://github.com/backstage/backstage/blob/master/packages/frontend-dynamic-feature-loader/README.md) package, which provides an integrated solution to load module federation remotes as dynamic frontend plugins, is a more complete example of a feature loader based on the module federation support.
 
-## Default Shared Dependencies
+## Configuration Reference
+
+### Host Configuration Schema
+
+The host configuration is specified in `app-config.yaml`:
+
+```yaml
+app:
+  moduleFederation:
+    sharedDependencies:
+      # Package name as key
+      <package-name>:
+        # Whether this must be a singleton (optional)
+        singleton: boolean
+        # Version of the shared dependency (optional, use to override the auto-filled value)
+        version: string
+        # Semver version requirement (required, false to completely disable version checking)
+        requiredVersion: false | string
+        # Whether to load eagerly (optional)
+        eager: boolean
+      # Or false to remove a dependency
+      <package-name>: false
+```
+
+### Remote Configuration Schema
+
+The remote configuration is specified as an inline JSON string:
+
+```json
+{
+  "<package-name>": {
+    "singleton": boolean (optional),
+    "version": false | string | null (optional),
+    "requiredVersion": false | string | null (optional),
+    "import": false | string | null (optional)
+  },
+  "<package-name>": false
+}
+```
+
+**Note about `null` values**: For remote configurations, remote-specific optional fields can be set to `null`
+to explicitly remove them from the Backstage default configuration, thus switching to the module federation standard default behavior.
+In the case of the `requiredVersion` and `import` fields, this allows them to be auto-filled at build time by the module federation plugin.
+
+### Configuration Fields
+
+| Field             | Type            | Host | Remote | Description                                                                                          |
+| ----------------- | --------------- | ---- | ------ | ---------------------------------------------------------------------------------------------------- |
+| `requiredVersion` | false \| string | ✓    | ✓      | Semver range (required for host, optional for remote).                                               |
+| `singleton`       | boolean         | ✓    | ✓      | Whether only one version should be loaded                                                            |
+| `eager`           | boolean         | ✓    | ✗      | Whether to load at app startup (host only)                                                           |
+| `import`          | false \| string | ✗    | ✓      | Whether to bundle inside the remote module (optional, `false` = must come from host).                |
+| `version`         | false \| string | ✓    | ✓      | Optional version to override the auto-filled value. Can be set to `false` for consumer-only remotes. |
+
+### Default Shared Dependencies
 
 Default shared dependencies are the same for both the host and remotes, and the list can be found in the [`@backstage/module-federation-common`](https://github.com/backstage/backstage/blob/master/packages/module-federation-common/src/defaults.ts) package.

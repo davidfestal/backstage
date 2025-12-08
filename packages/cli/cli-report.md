@@ -259,6 +259,7 @@ Options:
   --config <path>
   --minify
   --module-federation
+  --module-federation.shared-dependencies <json>
   --role <name>
   --skip-build-dependencies
   --stats

@@ -67,6 +67,7 @@ export async function buildBundle(options: BuildOptions) {
 
     const moduleFederationSharedDependenciesEntryPoint =
       await createRuntimeSharedDependeciesEntryPoint({
+        config: options.fullConfig,
         targetPath: paths.targetPath,
       });
 

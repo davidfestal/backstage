@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { mockApis } from '@backstage/test-utils';
 import {
   prepareRuntimeSharedDependenciesScript,
   buildRuntimeSharedUserOption,
@@ -290,7 +291,7 @@ describe('getRuntimeSharedDependencies', () => {
         module: async () => reactDomMock,
       },
     });
-    const result = await buildRuntimeSharedUserOption();
+    const result = await buildRuntimeSharedUserOption(mockApis.config({}));
 
     expect(result.errors).toEqual([]);
     expect(result.shared).toEqual({
@@ -330,7 +331,7 @@ describe('getRuntimeSharedDependencies', () => {
         requiredVersion: '^4.17.0',
       },
     });
-    const result = await buildRuntimeSharedUserOption();
+    const result = await buildRuntimeSharedUserOption(mockApis.config({}));
 
     expect(result.errors).toEqual([]);
     expect(result.shared).toEqual({
@@ -366,7 +367,7 @@ describe('getRuntimeSharedDependencies', () => {
         module: async () => ({ default: {} }),
       },
     });
-    const result = await buildRuntimeSharedUserOption();
+    const result = await buildRuntimeSharedUserOption(mockApis.config({}));
 
     expect(result.errors).toEqual([]);
     expect(result.shared).toEqual({
@@ -404,7 +405,7 @@ describe('getRuntimeSharedDependencies', () => {
         singleton: false,
       },
     });
-    const result = await buildRuntimeSharedUserOption();
+    const result = await buildRuntimeSharedUserOption(mockApis.config({}));
 
     expect(result.errors).toEqual([]);
     expect(result.shared).toEqual({
@@ -429,7 +430,7 @@ describe('getRuntimeSharedDependencies', () => {
 
   it('should handle an empty object', async () => {
     globalSpy.mockReturnValue({});
-    const result = await buildRuntimeSharedUserOption();
+    const result = await buildRuntimeSharedUserOption(mockApis.config({}));
 
     expect(result.errors).toEqual([]);
     expect(result.shared).toEqual({});
@@ -458,7 +459,7 @@ describe('getRuntimeSharedDependencies', () => {
       },
     });
 
-    const result = await buildRuntimeSharedUserOption();
+    const result = await buildRuntimeSharedUserOption(mockApis.config({}));
 
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toBeInstanceOf(ForwardedError);
@@ -508,7 +509,7 @@ describe('getRuntimeSharedDependencies', () => {
       },
     });
 
-    const result = await buildRuntimeSharedUserOption();
+    const result = await buildRuntimeSharedUserOption(mockApis.config({}));
 
     expect(result.errors).toHaveLength(2);
     expect(result.errors[0]).toBeInstanceOf(ForwardedError);

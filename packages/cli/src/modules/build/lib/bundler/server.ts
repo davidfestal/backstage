@@ -125,6 +125,7 @@ DEPRECATION WARNING: React Router Beta is deprecated and support for it will be 
 
   const moduleFederationSharedDependenciesEntryPoint =
     await createRuntimeSharedDependeciesEntryPoint({
+      config: fullConfig,
       targetPath: paths.targetPath,
       watch() {
         triggerReload();

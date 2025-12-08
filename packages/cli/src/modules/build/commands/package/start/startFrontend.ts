@@ -59,6 +59,7 @@ export async function startFrontend(options: StartAppOptions) {
       ? await getModuleFederationRemoteOptions(
           packageJson,
           resolvePath(paths.targetDir),
+          undefined,
         )
       : undefined,
   });
