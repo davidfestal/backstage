@@ -99,15 +99,17 @@ export class CommonJSModuleLoader implements ModuleLoader {
         );
       }
 
-      // Are we trying to resolve a `package.json` from an originating module of the core backstage application
-      // (this is mostly done by calling `@backstage/backend-plugin-api/resolvePackagePath`).
-      const resolvingPackageJsonFromBackstageApplication =
-        request?.endsWith('/package.json') &&
-        mod?.path &&
-        !dynamicPluginsPaths.some(p => mod.path.startsWith(p));
+      // Is this a `resolvePackagePath` call from `@backstage/backend-plugin-api`?
+      // This covers both the host application's copy and a bundled copy
+      // living inside a dynamic plugin's own node_modules.
+      const isFromBackendPluginApi = mod?.path?.includes(
+        path.join('node_modules', '@backstage', 'backend-plugin-api'),
+      );
 
-      // If not, we don't need the dedicated specific case below.
-      if (!resolvingPackageJsonFromBackstageApplication) {
+      const resolvingPackageJsonViaResolvePackagePath =
+        request?.endsWith('/package.json') && isFromBackendPluginApi;
+
+      if (!resolvingPackageJsonViaResolvePackagePath) {
         throw errorToThrow;
       }
 
