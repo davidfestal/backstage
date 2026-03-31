@@ -1,0 +1,52 @@
+{
+  "name": "@backstage/cli-module-oci",
+  "version": "0.1.0",
+  "description": "CLI module for OCI registry operations on Backstage dynamic plugin bundles",
+  "backstage": {
+    "role": "cli-module"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "types": "dist/index.d.ts"
+  },
+  "homepage": "https://backstage.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/backstage/backstage",
+    "directory": "packages/cli-module-oci"
+  },
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "bin": "bin/backstage-cli-module-oci",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "backstage-cli package build",
+    "clean": "backstage-cli package clean",
+    "lint": "backstage-cli package lint",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack",
+    "test": "backstage-cli package test"
+  },
+  "dependencies": {
+    "@backstage/cli-common": "workspace:^",
+    "@backstage/cli-node": "workspace:^",
+    "@backstage/config": "workspace:^",
+    "@backstage/config-loader": "workspace:^",
+    "@dfatwork/oci-client": "^0.16.1",
+    "chalk": "^4.0.0",
+    "cleye": "^2.3.0",
+    "fs-extra": "^11.2.0",
+    "npm-packlist": "^5.0.0",
+    "tar": "^7.5.6"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^",
+    "@types/fs-extra": "^11.0.0",
+    "@types/npm-packlist": "^3.0.0"
+  }
+}

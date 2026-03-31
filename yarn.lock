@@ -2817,6 +2817,7 @@ __metadata:
     "@backstage/cli-module-maintenance": "workspace:^"
     "@backstage/cli-module-migrate": "workspace:^"
     "@backstage/cli-module-new": "workspace:^"
+    "@backstage/cli-module-oci": "workspace:^"
     "@backstage/cli-module-test-jest": "workspace:^"
     "@backstage/cli-module-translations": "workspace:^"
   languageName: unknown
@@ -3094,6 +3095,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@backstage/cli-module-oci@workspace:^, @backstage/cli-module-oci@workspace:packages/cli-module-oci":
+  version: 0.0.0-use.local
+  resolution: "@backstage/cli-module-oci@workspace:packages/cli-module-oci"
+  dependencies:
+    "@backstage/cli": "workspace:^"
+    "@backstage/cli-common": "workspace:^"
+    "@backstage/cli-node": "workspace:^"
+    "@backstage/config": "workspace:^"
+    "@backstage/config-loader": "workspace:^"
+    "@dfatwork/oci-client": "npm:^0.16.1"
+    "@types/fs-extra": "npm:^11.0.0"
+    "@types/npm-packlist": "npm:^3.0.0"
+    chalk: "npm:^4.0.0"
+    cleye: "npm:^2.3.0"
+    fs-extra: "npm:^11.2.0"
+    npm-packlist: "npm:^5.0.0"
+    tar: "npm:^7.5.6"
+  bin:
+    cli-module-oci: bin/backstage-cli-module-oci
+  languageName: unknown
+  linkType: soft
+
 "@backstage/cli-module-test-jest@workspace:^, @backstage/cli-module-test-jest@workspace:packages/cli-module-test-jest":
   version: 0.0.0-use.local
   resolution: "@backstage/cli-module-test-jest@workspace:packages/cli-module-test-jest"
@@ -3188,6 +3211,7 @@ __metadata:
     "@backstage/cli-common": "workspace:^"
     "@backstage/cli-defaults": "workspace:^"
     "@backstage/cli-module-build": "workspace:^"
+    "@backstage/cli-module-oci": "workspace:^"
     "@backstage/cli-module-test-jest": "workspace:^"
     "@backstage/cli-node": "workspace:^"
     "@backstage/config": "workspace:^"
@@ -8502,6 +8526,85 @@ __metadata:
     gonzales-pe: "npm:^4.3.0"
     node-source-walk: "npm:^7.0.1"
   checksum: 10/647d4427f6aad119bdfea607ab19ca30be827f7f0462677b5a538d8f8ab4ebda2c05ece60fceb5d3abb093e69ab3393e24a8e966936d2745b07421cfd014b14f
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client-darwin-arm64@npm:0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client-darwin-arm64@npm:0.16.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client-darwin-x64@npm:0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client-darwin-x64@npm:0.16.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client-linux-arm64-gnu@npm:0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client-linux-arm64-gnu@npm:0.16.1"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client-linux-arm64-musl@npm:0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client-linux-arm64-musl@npm:0.16.1"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client-linux-x64-gnu@npm:0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client-linux-x64-gnu@npm:0.16.1"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client-linux-x64-musl@npm:0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client-linux-x64-musl@npm:0.16.1"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client-win32-x64-msvc@npm:0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client-win32-x64-msvc@npm:0.16.1"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@dfatwork/oci-client@npm:^0.16.1":
+  version: 0.16.1
+  resolution: "@dfatwork/oci-client@npm:0.16.1"
+  dependencies:
+    "@dfatwork/oci-client-darwin-arm64": "npm:0.16.1"
+    "@dfatwork/oci-client-darwin-x64": "npm:0.16.1"
+    "@dfatwork/oci-client-linux-arm64-gnu": "npm:0.16.1"
+    "@dfatwork/oci-client-linux-arm64-musl": "npm:0.16.1"
+    "@dfatwork/oci-client-linux-x64-gnu": "npm:0.16.1"
+    "@dfatwork/oci-client-linux-x64-musl": "npm:0.16.1"
+    "@dfatwork/oci-client-win32-x64-msvc": "npm:0.16.1"
+  dependenciesMeta:
+    "@dfatwork/oci-client-darwin-arm64":
+      optional: true
+    "@dfatwork/oci-client-darwin-x64":
+      optional: true
+    "@dfatwork/oci-client-linux-arm64-gnu":
+      optional: true
+    "@dfatwork/oci-client-linux-arm64-musl":
+      optional: true
+    "@dfatwork/oci-client-linux-x64-gnu":
+      optional: true
+    "@dfatwork/oci-client-linux-x64-musl":
+      optional: true
+    "@dfatwork/oci-client-win32-x64-msvc":
+      optional: true
+  checksum: 10/1030e799e2dc93f1c480c7d719093fe568bf99fa5feeab3d86bafa471a6a56a90174cece0424129734105564fa4f37033943f08a3e05bf68c081ee2b6f7e2ff5
   languageName: node
   linkType: hard
 

@@ -17,6 +17,7 @@ import actions from '@backstage/cli-module-actions';
 import auth from '@backstage/cli-module-auth';
 import build from '@backstage/cli-module-build';
 import config from '@backstage/cli-module-config';
+import oci from '@backstage/cli-module-oci';
 import github from '@backstage/cli-module-github';
 import info from '@backstage/cli-module-info';
 import lint from '@backstage/cli-module-lint';
@@ -42,6 +43,7 @@ export default [
   maintenance,
   migrate,
   newModule,
+  oci,
   testJest,
   translations,
 ];

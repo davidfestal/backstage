@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage-cli-module-oci
+  title: '@backstage/cli-module-oci'
+  description: CLI module for OCI registry operations on Backstage dynamic plugin bundles
+spec:
+  lifecycle: experimental
+  type: backstage-cli-module
+  owner: tooling-maintainers
